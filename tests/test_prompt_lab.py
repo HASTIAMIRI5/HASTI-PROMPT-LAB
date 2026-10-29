@@ -1,0 +1,60 @@
+from __future__ import annotations
+
+from prompt_lab.db import ExperimentStore
+from prompt_lab.evaluator import ExperimentRunner
+from prompt_lab.models import PromptVariant
+
+
+def test_prompt_variant_metadata() -> None:
+    prompt = PromptVariant(name="baseline", system_prompt="Be clear.", user_prompt="Say hello.")
+    assert prompt.name == "baseline"
+    assert prompt.system_prompt == "Be clear."
+    assert prompt.user_prompt == "Say hello."
+
+
+def test_experiment_runner_scores_cases() -> None:
+    variant = PromptVariant(name="baseline", system_prompt="You are an assistant.", user_prompt="Hello.")
+    cases = [
+        {"id": "1", "input": "What is a test?", "expected_output": "A test validates behavior.", "category": "general"},
+        {"id": "2", "input": "What is a prompt?", "expected_output": "A prompt is an instruction to a model.", "category": "general"},
+    ]
+
+    runner = ExperimentRunner(response_builder=lambda prompt, user_input: user_input.strip())
+    result = runner.run(variant, cases)
+
+    assert result.variant_name == "baseline"
+    assert 0.0 <= result.average_score <= 1.0
+    assert isinstance(result.details, list)
+
+
+def test_prompt_builder_generates_variants() -> None:
+    from prompt_lab.prompt_builder import build_prompt_variants
+
+    variants = build_prompt_variants(
+        "Be concise.",
+        "Explain the importance of version control.",
+        ["Use 2 sentences.", "Add a short example."],
+        context="Project team context.",
+    )
+
+    assert len(variants) == 2
+    assert "Explain the importance of version control." in variants[0].user_prompt
+    assert "CONTEXT:" in variants[0].user_prompt
+
+
+def test_experiment_store_round_trip(tmp_path) -> None:
+    db_path = tmp_path / "experiments.db"
+    store = ExperimentStore(db_path)
+    store.save_run(
+        run_id="demo-run",
+        variant_name="baseline",
+        provider="openai",
+        model="gpt-4o-mini",
+        dataset_name="demo",
+        metrics={"average_score": 0.9, "passed": True},
+    )
+
+    saved = store.get_run("demo-run")
+    assert saved is not None
+    assert saved["variant_name"] == "baseline"
+    assert saved["metrics"]["passed"] is True

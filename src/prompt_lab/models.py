@@ -11,6 +11,8 @@ class PromptVariant(BaseModel):
     user_prompt: str
     temperature: float = 0.1
     max_tokens: int = 256
+    provider: str = "openai"
+    model: str | None = None
 
 
 class ExperimentCase(BaseModel):
@@ -40,3 +42,15 @@ class EvaluationResult(BaseModel):
     clarity: float
     passed: bool
     details: list[dict[str, float | str]] = Field(default_factory=list)
+
+
+class ExperimentRun(BaseModel):
+    """Persisted run record for a single prompt experiment."""
+
+    run_id: str
+    variant_name: str
+    provider: str
+    model: str | None = None
+    dataset_name: str | None = None
+    metrics: dict[str, float | bool | str | list[dict[str, float | str]]] = Field(default_factory=dict)
+    created_at: str | None = None

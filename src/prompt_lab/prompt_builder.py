@@ -27,7 +27,7 @@ def build_prompt_variants(
     variants: Iterable[str],
     context: str | None = None,
 ) -> list[PromptVariant]:
-    """Create variants by appending addition prompts or instructions."""
+    """Create prompt variants by appending additional instructions."""
     generated: list[PromptVariant] = []
     for idx, modifier in enumerate(variants, start=1):
         user = f"{base_user_prompt}\n\n{modifier}".strip()
