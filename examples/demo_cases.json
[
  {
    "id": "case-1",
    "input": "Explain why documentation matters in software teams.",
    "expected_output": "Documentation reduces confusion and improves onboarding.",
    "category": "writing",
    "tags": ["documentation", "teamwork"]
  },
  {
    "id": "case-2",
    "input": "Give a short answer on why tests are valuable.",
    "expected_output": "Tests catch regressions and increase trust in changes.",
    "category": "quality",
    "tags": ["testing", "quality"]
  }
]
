@@ -1,0 +1,41 @@
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+from prompt_lab.evaluator import ExperimentRunner
+from prompt_lab.models import ExperimentCase, PromptVariant
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Run prompt experiments in the Hasti Prompt Lab.")
+    parser.add_argument("--system", default="You are a helpful assistant.", help="System prompt.")
+    parser.add_argument("--input", default="Summarize the benefits of clean, testable code.", help="User prompt input.")
+    parser.add_argument("--dataset", type=str, help="Path to a JSON dataset with cases.")
+    parser.add_argument("--name", default="baseline", help="Prompt variant name.")
+    parser.add_argument("--model", default="demo-model", help="Target model label.")
+    return parser
+
+
+def main() -> None:
+    load_dotenv()
+    parser = build_parser()
+    args = parser.parse_args()
+
+    if args.dataset:
+        runner = ExperimentRunner(model_name=args.model)
+        cases = runner.load_cases(args.dataset)
+        variant = PromptVariant(name=args.name, system_prompt=args.system, user_prompt=args.input)
+        result = runner.run(variant, cases)
+        print(json.dumps(result.model_dump(), indent=2))
+        return
+
+    prompt = PromptVariant(name=args.name, system_prompt=args.system, user_prompt=args.input)
+    print(json.dumps(prompt.model_dump(), indent=2))
+
+
+if __name__ == "__main__":
+    main()

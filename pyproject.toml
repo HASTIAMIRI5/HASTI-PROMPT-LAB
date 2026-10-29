@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hasti-prompt-lab"
+version = "0.1.0"
+description = "AI prompt engineering sandbox for experiments and evaluation."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Hasti" }]
+license = { text = "MIT" }
+keywords = ["ai", "prompt", "evaluation", "llm", "experiments"]
+dependencies = [
+  "pydantic>=2.0",
+  "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+
+[project.scripts]
+hasti-prompt-lab = "prompt_lab.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
